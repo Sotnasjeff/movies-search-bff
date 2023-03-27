@@ -1,5 +1,6 @@
 package com.configuration.di
 
+import com.configuration.circuitbreaker.resilienceConfiguration
 import com.configuration.json.configureObjectMapper
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.config.HoconApplicationConfig
@@ -15,5 +16,6 @@ val configurationModule = Kodein.Module("configuration") {
     bind() from instance(configureObjectMapper())
     import(serviceConfiguration)
     import(metricsConfiguration)
+    import(resilienceConfiguration)
 
 }
