@@ -2,6 +2,7 @@ package com.configuration.di
 
 import com.configuration.circuitbreaker.resilienceConfiguration
 import com.configuration.json.configureObjectMapper
+import com.dataprovider.http.configuration.httpClientConfiguration
 import com.typesafe.config.ConfigFactory
 import io.ktor.server.config.HoconApplicationConfig
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -17,5 +18,7 @@ val configurationModule = Kodein.Module("configuration") {
     import(serviceConfiguration)
     import(metricsConfiguration)
     import(resilienceConfiguration)
+    import(httpClientConfiguration)
+    import(repositoryConfiguration)
 
 }
