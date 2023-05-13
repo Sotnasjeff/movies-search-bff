@@ -14,4 +14,5 @@ data class Movie(
     val poster: String?,
     val production: String?,
     val metascore: String?,
+    val imdbRating: String?
 )
