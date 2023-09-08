@@ -18,7 +18,8 @@ object MovieConverter {
             awards = this.Awards,
             production = this.Production,
             metascore = this.Metascore,
-            poster = this.Poster
+            poster = this.Poster,
+            imdbRating = this.imdbRating
         )
     }
 }

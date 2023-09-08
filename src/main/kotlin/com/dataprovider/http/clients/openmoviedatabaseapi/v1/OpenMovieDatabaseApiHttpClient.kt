@@ -4,7 +4,6 @@ import com.configuration.circuitbreaker.attemptAndRecover
 import com.dataprovider.http.clients.openmoviedatabaseapi.v1.configuration.OpenMovieDatabaseApiV1CircuitBreaker
 import com.dataprovider.http.clients.openmoviedatabaseapi.v1.entity.OpenMovieDatabaseResponse
 import com.dataprovider.http.configuration.HttpClientProperties
-import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.log.LogContextHelper
 import com.web.headers.HeaderContextValue
@@ -17,21 +16,24 @@ import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.client.statement.readBytes
+import io.ktor.serialization.jackson.jackson
 import io.ktor.util.InternalAPI
-import io.ktor.util.toByteArray
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 
 data class OpenMovieDatabaseApiHttpClient(
     private val properties: HttpClientProperties,
-    private var objectMapper: ObjectMapper,
+    private val objectMapper: ObjectMapper,
+    private val objectMapperConfiguration: ObjectMapper.() -> Unit,
     private val resilience: OpenMovieDatabaseApiV1CircuitBreaker
 ) {
     private var url: String = properties.url
 
     private var client: HttpClient = HttpClient(CIO) {
         install(ContentNegotiation) {
-            json()
+            jackson(block = objectMapperConfiguration)
         }
         engine {
             maxConnectionsCount = properties.maxConnectionsCount
@@ -50,7 +52,7 @@ data class OpenMovieDatabaseApiHttpClient(
     suspend fun getMoviesByTitle(t: String, y: Int, plot: String, type: String?): OpenMovieDatabaseResponse? {
         return resilience.circuitBreaker.attemptAndRecover(
             tryBlock = {
-                val response = client.get(url) {
+                val httpResponse = client.get(url) {
                     header("Content-Type", "application/json")
                     parameter("apiKey", properties.customProperties["apiKey"])
                     parameter("t", t)
@@ -59,8 +61,14 @@ data class OpenMovieDatabaseApiHttpClient(
                     parameter("type", type)
                     setOpenMovieDatabaseApiAllowedHeaders()
                 }
-                val result = objectMapper.readValue(response.content.toByteArray(), OpenMovieDatabaseResponse::class.java)
-                result
+                var response: OpenMovieDatabaseResponse? = null
+                withContext(Dispatchers.IO) {
+                    response = objectMapper.readValue(
+                        httpResponse.readBytes(),
+                        OpenMovieDatabaseResponse::class.java
+                    )
+                }
+                response
             },
             recoverBlock = {
                 log.warn(
