@@ -12,20 +12,25 @@ import java.time.ZonedDateTime
 
 fun configureObjectMapper(): ObjectMapper {
     val objectMapper = jacksonObjectMapper()
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-    objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false)
-    objectMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
-
-    objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
-    objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL)
-
-    val customModule = SimpleModule()
-    customModule.addDeserializer(ZonedDateTime::class.java, ZonedDateTimeDeserializer())
-    customModule.addSerializer(ZonedDateTime::class.java, ZonedDateTimeSerializer())
-
-    objectMapper.registerModule(JavaTimeModule())
-    objectMapper.registerModule(customModule)
-
+    objectMapper.apply(objectMapperConfiguration())
     return objectMapper
+}
+
+fun objectMapperConfiguration(): ObjectMapper.() -> Unit {
+    return {
+        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+        configure(SerializationFeature.INDENT_OUTPUT, false)
+        configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
+
+        setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+        setSerializationInclusion(JsonInclude.Include.NON_NULL)
+
+        val customModule = SimpleModule()
+        customModule.addDeserializer(ZonedDateTime::class.java, ZonedDateTimeDeserializer())
+        customModule.addSerializer(ZonedDateTime::class.java, ZonedDateTimeSerializer())
+
+        registerModule(JavaTimeModule())
+        registerModule(customModule)
+    }
 }

@@ -12,5 +12,5 @@ var openMovieDatabaseApiV1Configuration = Kodein.Module("httpClientsConfiguratio
     bind() from singleton { openMovieDatabaseApiV1ResilienceProperties(instance()) }
     bind() from singleton { OpenMovieDatabaseApiV1CircuitBreaker(instance(), instance()) }
     bind() from singleton { openMovieDatabaseApiV1HttpClientProperties(instance()) }
-    bind() from singleton { OpenMovieDatabaseApiHttpClient(instance(), instance(), instance()) }
+    bind() from singleton { OpenMovieDatabaseApiHttpClient(instance(), instance(), instance(), instance()) }
 }
